@@ -31,10 +31,10 @@ class LoginScreen extends StatelessWidget {
               CircularProgressIndicator()
             else
               ElevatedButton(
-                onPressed: () {
-                  provider.login(
-                    emailController.text,
-                    passController.text,
+                onPressed: () async {
+                  await provider.login(
+                    emailController.text.trim(),
+                    passController.text.trim(),
                   );
                 },
                 child: Text("Login"),

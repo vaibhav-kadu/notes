@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _service = AuthService();
@@ -9,12 +9,14 @@ class AuthProvider with ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  Future<void> login(String email, String password) async {
+  Future<void> signup(String email, String password) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      user = await _service.login(email, password);
+      final res = await _service.signUp(email, password);
+      user = res.user;
+
       error = null;
     } catch (e) {
       error = e.toString();
@@ -24,12 +26,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signup(String email, String password) async {
+  Future<void> login(String email, String password) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      user = await _service.signup(email, password);
+      final res = await _service.login(email, password);
+      user = res.user;
+
       error = null;
     } catch (e) {
       error = e.toString();
@@ -37,5 +41,15 @@ class AuthProvider with ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> logout() async {
+    await _service.logout();
+    user = null;
+    notifyListeners();
+  }
+
+  bool isLoggedIn() {
+    return _service.getCurrentUser() != null;
   }
 }

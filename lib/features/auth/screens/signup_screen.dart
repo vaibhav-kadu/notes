@@ -30,10 +30,10 @@ class SignupScreen extends StatelessWidget {
               CircularProgressIndicator()
             else
               ElevatedButton(
-                onPressed: () {
-                  provider.signup(
-                    emailController.text,
-                    passController.text,
+                onPressed: () async {
+                  await provider.signup(
+                    emailController.text.trim(),
+                    passController.text.trim(),
                   );
                 },
                 child: Text("Signup"),
