@@ -1,24 +1,31 @@
-import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  import 'package:flutter/material.dart';
+  import 'package:provider/provider.dart';
+  import 'package:supabase_flutter/supabase_flutter.dart';
 
-  await Supabase.initialize(
-    url: 'https://peylohengsmmdniizkcf.supabase.co',
-    anonKey: 'sb_publishable_boReR1a1HcfxBA_T-Lgkfg_GviXdxwQ',
-  );
+  import 'core/auth_wrapper.dart';
+  import 'features/auth/provider/auth_provider.dart';
 
-  runApp(MyApp());
-}
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
+    await Supabase.initialize(
+      url: 'https://peylohengsmmdniizkcf.supabase.co',
+      anonKey: 'sb_publishable_boReR1a1HcfxBA_T-Lgkfg_GviXdxwQ',
+    );
+
+    runApp(MyApp());
+  }
+
+  class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text("Supabase Connected")),
-      ),
-    );
+  return ChangeNotifierProvider(
+  create: (_) => AuthProvider()..checkSession(),
+  child: MaterialApp(
+  debugShowCheckedModeBanner: false,
+  home: AuthWrapper(),
+  ),
+  );
   }
-}
+  }

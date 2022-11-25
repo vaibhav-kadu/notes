@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _service = AuthService();
@@ -9,47 +9,69 @@ class AuthProvider with ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  Future<void> signup(String email, String password) async {
-    try {
-      isLoading = true;
-      notifyListeners();
-
-      final res = await _service.signUp(email, password);
-      user = res.user;
-
-      error = null;
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> login(String email, String password) async {
-    try {
-      isLoading = true;
-      notifyListeners();
-
-      final res = await _service.login(email, password);
-      user = res.user;
-
-      error = null;
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> logout() async {
-    await _service.logout();
-    user = null;
+  // 🔹 Check existing session (Auto Login)
+  void checkSession() {
+    user = _service.getCurrentUser();
     notifyListeners();
   }
 
+  // 🔹 Signup
+  Future<void> signup(String email, String password) async {
+    try {
+      isLoading = true;
+      error = null;
+      notifyListeners();
+
+      final res = await _service.signUp(email, password);
+
+      if (res.user != null) {
+        user = res.user;
+      }
+    } on AuthException catch (e) {
+      error = e.message;
+    } catch (e) {
+      error = "Something went wrong";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // 🔹 Login
+  Future<void> login(String email, String password) async {
+    try {
+      isLoading = true;
+      error = null;
+      notifyListeners();
+
+      final res = await _service.login(email, password);
+
+      if (res.user != null) {
+        user = res.user;
+      }
+    } on AuthException catch (e) {
+      error = e.message;
+    } catch (e) {
+      error = "Login failed";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // 🔹 Logout
+  Future<void> logout() async {
+    try {
+      await _service.logout();
+      user = null;
+    } catch (e) {
+      error = "Logout failed";
+    }
+    notifyListeners();
+  }
+
+  // 🔹 Check login state
   bool isLoggedIn() {
-    return _service.getCurrentUser() != null;
+    return user != null;
   }
 }
