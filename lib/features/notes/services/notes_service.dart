@@ -1,5 +1,8 @@
 import '../../../core/supabase_client.dart';
 import '../models/note_model.dart';
+import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/supabase_client.dart';
 
 class NotesService {
 
@@ -17,5 +20,19 @@ class NotesService {
     return (res as List)
         .map((e) => NoteModel.fromJson(e))
         .toList();
+  }
+
+  Future<String> uploadPDF(File file) async {
+    final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    await supabase.storage
+        .from('notes')
+        .upload(fileName, file);
+
+    final publicUrl = supabase.storage
+        .from('notes')
+        .getPublicUrl(fileName);
+
+    return publicUrl;
   }
 }
