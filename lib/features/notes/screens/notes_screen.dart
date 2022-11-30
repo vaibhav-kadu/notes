@@ -50,6 +50,8 @@ class _NotesScreenState extends State<NotesScreen> {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<NotesProvider>(context);
