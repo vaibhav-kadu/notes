@@ -14,12 +14,36 @@ class NotesService {
     });
   }
 
-  Future<List<NoteModel>> fetchNotes() async {
-    final res = await supabase.from('notes').select();
+  Future<List<NoteModel>> fetchMixedFeed() async {
+    final latest = await supabase
+        .from('notes')
+        .select()
+        .order('created_at', ascending: false)
+        .limit(10);
 
-    return (res as List)
-        .map((e) => NoteModel.fromJson(e))
-        .toList();
+    final popular = await supabase
+        .from('notes')
+        .select()
+        .order('views_count', ascending: false)
+        .limit(10);
+
+    List<NoteModel> latestList =
+    (latest as List).map((e) => NoteModel.fromJson(e)).toList();
+
+    List<NoteModel> popularList =
+    (popular as List).map((e) => NoteModel.fromJson(e)).toList();
+
+    List<NoteModel> result = [];
+
+    for (int i = 0; i < latestList.length; i++) {
+      result.add(latestList[i]);
+
+      if (i < popularList.length) {
+        result.add(popularList[i]);
+      }
+    }
+
+    return result;
   }
 
   Future<String> uploadPDF(File file) async {

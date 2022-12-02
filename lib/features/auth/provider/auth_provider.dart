@@ -74,4 +74,24 @@ class AuthProvider with ChangeNotifier {
   bool isLoggedIn() {
     return user != null;
   }
+
+  Future<void> loadNotes() async {
+    isLoading = true;
+    notifyListeners();
+
+    notes = await _service.fetchMixedFeed();
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadFeed() async {
+    isLoading = true;
+    notifyListeners();
+
+    notes = await _service.fetchMixedFeed();
+
+    isLoading = false;
+    notifyListeners();
+  }
 }

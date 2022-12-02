@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
 }
 
 import java.util.Properties
@@ -17,9 +16,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.amrutamtechnology.notes"
-    compileSdk = 34   // or 35/36 (your system supports 36)
+    compileSdk = 36   // or 35/36 (your system supports 36)
 
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -32,8 +31,8 @@ android {
 
     defaultConfig {
         applicationId = "com.amrutamtechnology.notes"
-        minSdk = 21
-        targetSdk = 34   // Play Store requirement (34+)
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36   // Play Store requirement (34+)
 
         versionCode = 2
         versionName = "1.0.1"
