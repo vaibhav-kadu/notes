@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../admin/admin_screen.dart';
 import '../auth/provider/auth_provider.dart';
 import '../notes/screens/notes_screen.dart';
 
@@ -13,6 +14,19 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Notes App 🎓"),
         actions: [
+          if (authProvider.role == "admin")
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AdminScreen(),
+                  ),
+                );
+              },
+            ),
+
           IconButton(
             onPressed: () async {
               await authProvider.logout();
@@ -26,15 +40,17 @@ class HomeScreen extends StatelessWidget {
       body: NotesScreen(),
 
       // 🔹 Floating Button (Future: Upload PDF)
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: (authProvider.role == "teacher" &&
+          authProvider.isVerified)
+          ? FloatingActionButton(
         onPressed: () {
-          // Next module: Upload PDF
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Upload feature coming next 🚀")),
+            const SnackBar(content: Text("Upload coming soon 🚀")),
           );
         },
-        child: const Icon(Icons.add),
-      ),
+        child: const Icon(Icons.upload),
+      )
+          : null,
     );
   }
 }

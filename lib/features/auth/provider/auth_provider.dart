@@ -8,6 +8,8 @@ class AuthProvider with ChangeNotifier {
   User? user;
   bool isLoading = false;
   String? error;
+  String? role;
+  bool isVerified = false;
 
   // 🔹 Check existing session (Auto Login)
   void checkSession() {
@@ -26,6 +28,7 @@ class AuthProvider with ChangeNotifier {
 
       if (res.user != null) {
         user = res.user;
+        await fetchUserRole();
       }
     } on AuthException catch (e) {
       error = e.message;
@@ -48,6 +51,7 @@ class AuthProvider with ChangeNotifier {
 
       if (res.user != null) {
         user = res.user;
+        await fetchUserRole();
       }
     } on AuthException catch (e) {
       error = e.message;
@@ -75,23 +79,20 @@ class AuthProvider with ChangeNotifier {
     return user != null;
   }
 
-  Future<void> loadNotes() async {
-    isLoading = true;
-    notifyListeners();
+  Future<void> fetchUserRole() async {
+    final user = _service.getCurrentUser();
 
-    notes = await _service.fetchMixedFeed();
+    if (user == null) return;
 
-    isLoading = false;
-    notifyListeners();
-  }
+    final res = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('id', user.id)
+        .single();
 
-  Future<void> loadFeed() async {
-    isLoading = true;
-    notifyListeners();
+    role = res['role'];
+    isVerified = res['is_verified'] ?? false;
 
-    notes = await _service.fetchMixedFeed();
-
-    isLoading = false;
     notifyListeners();
   }
 }

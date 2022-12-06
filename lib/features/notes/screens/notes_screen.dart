@@ -21,22 +21,6 @@ class _NotesScreenState extends State<NotesScreen> {
     );
   }
 
-  Future<void> uploadNoteSecure(...) async {
-  final user = supabase.auth.currentUser;
-
-  final res = await supabase
-      .from('users')
-      .select()
-      .eq('id', user!.id)
-      .single();
-
-  if (res['role'] != 'teacher' || res['is_verified'] != true) {
-  throw Exception("Not authorized");
-  }
-
-  // upload logic
-  }
-
   // 🔹 Pick & Upload PDF
   Future<void> pickAndUpload(BuildContext context) async {
     final provider = Provider.of<NotesProvider>(context, listen: false);
@@ -49,7 +33,7 @@ class _NotesScreenState extends State<NotesScreen> {
     if (result != null) {
       File file = File(result.files.single.path!);
 
-      await provider.uploadNote(
+      await provider.uploadNoteSecure(
         "Sample Note",
         "Engineering",
         file,
@@ -72,34 +56,72 @@ class _NotesScreenState extends State<NotesScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<NotesProvider>(context);
 
-    return Card(
-      margin: EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.network(note.thumbnailUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Notes 📚")),
 
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(note.title, style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
+      body: provider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : provider.notes.isEmpty
+          ? const Center(child: Text("No notes available"))
+          : ListView.builder(
+        itemCount: provider.notes.length,
+        itemBuilder: (context, index) {
+          final note = provider.notes[index];
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(note.subject),
-          ),
+          return Card(
+            margin:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            elevation: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔹 Thumbnail
+                Image.network(
+                  note.thumbnailUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("👁 ${note.views} views"),
-              IconButton(
-                icon: Icon(Icons.open_in_new),
-                onPressed: () => openPDF(note.fileUrl),
-              )
-            ],
-          )
-        ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    note.title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(note.subject),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("👁 ${note.views} views"),
+                      IconButton(
+                        icon: const Icon(Icons.open_in_new),
+                        onPressed: () =>
+                            openPDF(note.fileUrl),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => pickAndUpload(context),
+        child: const Icon(Icons.upload),
       ),
     );
   }
