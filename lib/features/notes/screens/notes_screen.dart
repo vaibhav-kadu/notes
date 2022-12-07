@@ -59,64 +59,101 @@ class _NotesScreenState extends State<NotesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Notes 📚")),
 
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : provider.notes.isEmpty
-          ? const Center(child: Text("No notes available"))
-          : ListView.builder(
-        itemCount: provider.notes.length,
-        itemBuilder: (context, index) {
-          final note = provider.notes[index];
+      body: Column(
+        children: [
+          // 🔍 SEARCH BAR
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: "Search notes...",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                provider.searchNotes(value);
+              },
+            ),
+          ),
 
-          return Card(
-            margin:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            elevation: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🔹 Thumbnail
-                Image.network(
-                  note.thumbnailUrl,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+          // 🔽 CONTENT AREA (IMPORTANT: must be Expanded)
+          Expanded(
+            child: provider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : provider.filteredNotes.isEmpty
+                ? const Center(child: Text("No notes available"))
+                : ListView.builder(
+              itemCount: provider.filteredNotes.length,
+              itemBuilder: (context, index) {
+                final note = provider.filteredNotes[index];
 
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    note.title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-
-                Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(note.subject),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 8),
+                  elevation: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("👁 ${note.views} views"),
-                      IconButton(
-                        icon: const Icon(Icons.open_in_new),
-                        onPressed: () =>
-                            openPDF(note.fileUrl),
-                      )
+                      // 🔹 Thumbnail
+                      Image.network(
+                        note.thumbnailUrl,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          note.title,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                      ),
+
+                      Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(note.subject),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    note.isBookmarked
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                  ),
+                                  onPressed: () {
+                                    provider.toggleBookmark(note);
+                                  },
+                                ),
+                                Text("👁 ${note.views} views"),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.open_in_new),
+                              onPressed: () =>
+                                  openPDF(note.fileUrl),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(

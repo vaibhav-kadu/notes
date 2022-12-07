@@ -7,6 +7,7 @@ class NoteModel {
   final String type;
   final int views;
   final DateTime createdAt;
+  bool isBookmarked;
 
   NoteModel({
     required this.id,
@@ -17,6 +18,8 @@ class NoteModel {
     required this.type,
     required this.views,
     required this.createdAt,
+    this.isBookmarked = false,
+
   });
 
   factory NoteModel.fromJson(Map<String, dynamic> json) {
