@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../admin/admin_screen.dart';
 import '../auth/provider/auth_provider.dart';
 import '../notes/screens/notes_screen.dart';
+import '../quiz/screens/quiz_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -33,6 +34,15 @@ class HomeScreen extends StatelessWidget {
             },
             icon: const Icon(Icons.logout),
           ),
+          IconButton(
+            icon: Icon(Icons.quiz),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => QuizScreen()),
+              );
+            },
+          )
         ],
       ),
 
