@@ -45,6 +45,11 @@ class NotesProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void filterBySubject(String subject) {
+    filteredNotes =
+        notes.where((note) => note.subject == subject).toList();
+    notifyListeners();
+  }
 
   Future<void> loadNotes() async {
     await loadFromCache(); // load offline first

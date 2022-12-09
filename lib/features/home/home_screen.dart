@@ -14,6 +14,8 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Notes App 🎓"),
+        centerTitle: true,
+        elevation: 2,
         actions: [
           if (authProvider.role == "admin")
             IconButton(

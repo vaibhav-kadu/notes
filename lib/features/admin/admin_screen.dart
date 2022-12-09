@@ -40,7 +40,11 @@ class _AdminScreenState extends State<AdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Admin Panel 👑")),
+      appBar: AppBar(
+        title: Text("Notes App"),
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: ListView.builder(
         itemCount: users.length,
         itemBuilder: (context, index) {

@@ -12,7 +12,11 @@ class SignupScreen extends StatelessWidget {
     final provider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text("Signup")),
+      appBar: AppBar(
+        title: Text("Notes App"),
+        centerTitle: true,
+        elevation: 2,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../auth/provider/auth_provider.dart';
 import '../provider/notes_provider.dart';
 
 import 'dart:io';
@@ -57,7 +58,11 @@ class _NotesScreenState extends State<NotesScreen> {
     final provider = Provider.of<NotesProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Notes 📚")),
+      appBar: AppBar(
+        title: Text("Notes App"),
+        centerTitle: true,
+        elevation: 2,
+      ),
 
       body: Column(
         children: [
@@ -91,6 +96,9 @@ class _NotesScreenState extends State<NotesScreen> {
                   margin: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 8),
                   elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -156,10 +164,14 @@ class _NotesScreenState extends State<NotesScreen> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton:
+      (Provider.of<AuthProvider>(context).role == "teacher" ||
+          Provider.of<AuthProvider>(context).role == "admin")
+          ? FloatingActionButton(
         onPressed: () => pickAndUpload(context),
         child: const Icon(Icons.upload),
-      ),
+      )
+          : null,
     );
   }
 }

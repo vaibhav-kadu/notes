@@ -10,7 +10,11 @@ class QuizScreen extends StatelessWidget {
     final question = provider.questions[provider.currentIndex];
 
     return Scaffold(
-      appBar: AppBar(title: Text("Quiz 🧠")),
+      appBar: AppBar(
+        title: Text("Notes App"),
+        centerTitle: true,
+        elevation: 2,
+      ),
 
       body: Column(
         children: [
