@@ -18,22 +18,30 @@ class AuthProvider with ChangeNotifier {
   }
 
   // 🔹 Signup
-  Future<void> signup(String email, String password) async {
+  Future<void> signup(String email, String password, String roleInput) async {
     try {
       isLoading = true;
-      error = null;
       notifyListeners();
 
       final res = await _service.signUp(email, password);
 
       if (res.user != null) {
         user = res.user;
+
+        // 🔥 SAVE ROLE IN DB
+        await Supabase.instance.client.from('users').insert({
+          'id': user!.id,
+          'email': email,
+          'role': roleInput,
+          'is_verified': roleInput == "student" ? true : false,
+        });
+
         await fetchUserRole();
       }
-    } on AuthException catch (e) {
-      error = e.message;
+
+      error = null;
     } catch (e) {
-      error = "Something went wrong";
+      error = e.toString();
     } finally {
       isLoading = false;
       notifyListeners();

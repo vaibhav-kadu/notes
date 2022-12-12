@@ -6,7 +6,7 @@ import 'signup_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
-  final passController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -19,46 +19,57 @@ class LoginScreen extends StatelessWidget {
         elevation: 2,
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AuthTextField(controller: emailController, hint: "Email"),
-            SizedBox(height: 10),
-            AuthTextField(
-              controller: passController,
-              hint: "Password",
-              obscure: true,
+            Text(
+              "Welcome Back 👋",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
+
             SizedBox(height: 20),
 
-            if (provider.isLoading)
-              CircularProgressIndicator()
-            else
-              ElevatedButton(
-                onPressed: () async {
-                  await provider.login(
-                    emailController.text.trim(),
-                    passController.text.trim(),
-                  );
-                },
-                child: Text("Login"),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
               ),
+            ),
+
+            SizedBox(height: 10),
+
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () {
+                provider.login(
+                  emailController.text,
+                  passwordController.text,
+                );
+              },
+              child: Text("Login"),
+            ),
 
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SignupScreen()),
-                );
+                Navigator.pushNamed(context, "/signup");
               },
               child: Text("Create Account"),
             ),
-
-            if (provider.error != null)
-              Text(provider.error!, style: TextStyle(color: Colors.red)),
           ],
         ),
-      ),
+      )
     );
   }
 }
