@@ -8,6 +8,8 @@ class NoteModel {
   final int views;
   final DateTime createdAt;
   bool isBookmarked;
+  bool isLiked;
+  bool isUploaded;
 
   NoteModel({
     required this.id,
@@ -19,20 +21,29 @@ class NoteModel {
     required this.views,
     required this.createdAt,
     this.isBookmarked = false,
-
+    this.isLiked = false,
+    this.isUploaded = false,
   });
 
   factory NoteModel.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.tryParse(json['created_at']?.toString() ?? '');
+
     return NoteModel(
-      id: json['id'].toString(),
-      title: json['title'] ?? '',
-      subject: json['subject'] ?? '',
-      fileUrl: json['file_url'] ?? '',
-      thumbnailUrl: json['thumbnail_url'] ??
-          'https://via.placeholder.com/300x200.png?text=No+Image',
-      type: json['type'] ?? 'pdf',
-      views: json['views_count'] ?? 0,
-      createdAt: DateTime.parse(json['created_at']),
+      id: json['id']?.toString() ??
+          json['file_url']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      title: json['title']?.toString() ?? '',
+      subject: json['subject']?.toString() ?? '',
+      fileUrl: json['file_url']?.toString() ?? '',
+      thumbnailUrl: json['thumbnail_url']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'notes',
+      views: json['views_count'] is int
+          ? json['views_count'] as int
+          : int.tryParse(json['views_count']?.toString() ?? '') ?? 0,
+      createdAt: createdAt ?? DateTime.now(),
+      isBookmarked: json['is_bookmarked'] == true,
+      isLiked: json['is_liked'] == true,
+      isUploaded: json['is_uploaded'] == true,
     );
   }
 }

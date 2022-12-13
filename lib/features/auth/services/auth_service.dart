@@ -3,10 +3,18 @@ import '../../../core/supabase_client.dart';
 
 class AuthService {
 
-  Future<AuthResponse> signUp(String email, String password) async {
+  Future<AuthResponse> signUp(
+    String email,
+    String password,
+    String role,
+  ) async {
     return await supabase.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'role': role,
+        'is_verified': true,
+      },
     );
   }
 

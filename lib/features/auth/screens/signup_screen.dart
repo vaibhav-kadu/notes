@@ -83,12 +83,18 @@ class _SignupScreenState extends State<SignupScreen> {
 
             // 🔹 Register Button
             ElevatedButton(
-              onPressed: () {
-                provider.signup(
+              onPressed: () async {
+                await provider.signup(
                   emailController.text.trim(),
                   passwordController.text.trim(),
                   selectedRole,
                 );
+
+                if (!mounted) return;
+
+                if (provider.user != null && provider.error == null) {
+                  Navigator.pop(context);
+                }
               },
               child: const Text("Register"),
             ),

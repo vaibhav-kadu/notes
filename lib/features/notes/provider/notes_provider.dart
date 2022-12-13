@@ -12,36 +12,154 @@ class NotesProvider with ChangeNotifier {
 
   List<NoteModel> notes = [];
   bool isLoading = false;
+  Set<String> _bookmarkedNoteKeys = {};
+  Set<String> _likedNoteKeys = {};
+  Set<String> _uploadedNoteKeys = {};
+  String? _loadedUserId;
+
+  List<NoteModel> get bookmarkedNotes =>
+      notes.where((note) => note.isBookmarked).toList();
+
+  List<NoteModel> get likedNotes =>
+      notes.where((note) => note.isLiked).toList();
+
+  List<NoteModel> get uploadedNotes =>
+      notes.where((note) => note.isUploaded).toList();
+
+  String _currentUserId() => supabase.auth.currentUser?.id ?? 'guest';
+
+  String _storageKey(String prefix) => '${prefix}_${_currentUserId()}';
+
+  String _noteKey(NoteModel note) => note.id.isNotEmpty ? note.id : note.fileUrl;
+
+  Future<String?> _resolveCurrentRole() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return null;
+
+    final metadataRole = user.userMetadata?['role']?.toString();
+    if (metadataRole != null && metadataRole.isNotEmpty) {
+      return metadataRole;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_role_${user.id}');
+  }
+
+  bool _matchesActivity(Set<String> activityKeys, NoteModel note) {
+    final key = _noteKey(note);
+    return activityKeys.contains(key) || activityKeys.contains(note.fileUrl);
+  }
+
+  void _updateActivity(Set<String> activityKeys, NoteModel note, bool value) {
+    final key = _noteKey(note);
+
+    if (value) {
+      activityKeys.add(key);
+      activityKeys.add(note.fileUrl);
+    } else {
+      activityKeys.remove(key);
+      activityKeys.remove(note.fileUrl);
+    }
+  }
+
+  Future<void> _loadUserActivity() async {
+    final userId = _currentUserId();
+    if (_loadedUserId == userId) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    _bookmarkedNoteKeys =
+        (prefs.getStringList(_storageKey('notes_bookmarks')) ?? []).toSet();
+    _likedNoteKeys =
+        (prefs.getStringList(_storageKey('notes_likes')) ?? []).toSet();
+    _uploadedNoteKeys =
+        (prefs.getStringList(_storageKey('notes_uploaded')) ?? []).toSet();
+    _loadedUserId = userId;
+  }
+
+  Future<void> _saveUserActivity() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _storageKey('notes_bookmarks'),
+      _bookmarkedNoteKeys.toList(),
+    );
+    await prefs.setStringList(
+      _storageKey('notes_likes'),
+      _likedNoteKeys.toList(),
+    );
+    await prefs.setStringList(
+      _storageKey('notes_uploaded'),
+      _uploadedNoteKeys.toList(),
+    );
+  }
+
+  void _applyUserActivity() {
+    for (final note in notes) {
+      note.isBookmarked = _matchesActivity(_bookmarkedNoteKeys, note);
+      note.isLiked = _matchesActivity(_likedNoteKeys, note);
+      note.isUploaded = _matchesActivity(_uploadedNoteKeys, note);
+    }
+  }
 
 
   Future<void> cacheNotes() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final data = notes.map((e) => {
+    final data = notes
+        .map((e) => {
+      'id': e.id,
       'title': e.title,
       'subject': e.subject,
       'file_url': e.fileUrl,
-    }).toList();
+      'thumbnail_url': e.thumbnailUrl,
+              'type': e.type,
+              'views_count': e.views,
+              'created_at': e.createdAt.toIso8601String(),
+              'is_bookmarked': e.isBookmarked,
+              'is_liked': e.isLiked,
+              'is_uploaded': e.isUploaded,
+            })
+        .toList();
 
-    prefs.setString('notes_cache', jsonEncode(data));
+    await prefs.setString('notes_cache', jsonEncode(data));
   }
 
   Future<void> loadFromCache() async {
+    await _loadUserActivity();
     final prefs = await SharedPreferences.getInstance();
-
     final data = prefs.getString('notes_cache');
 
-    if (data != null) {
-      final decoded = jsonDecode(data) as List;
+    if (data == null) return;
 
-      notes = decoded.map((e) => NoteModel.fromJson(e)).toList();
+    try {
+      final decoded = jsonDecode(data) as List<dynamic>;
+
+      notes = decoded
+          .map((e) => NoteModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+
+      _applyUserActivity();
+      filteredNotes = List<NoteModel>.from(notes);
       notifyListeners();
+    } catch (_) {
+      await prefs.remove('notes_cache');
     }
   }
 
 
-  void toggleBookmark(NoteModel note) {
+
+  Future<void> toggleBookmark(NoteModel note) async {
     note.isBookmarked = !note.isBookmarked;
+    _updateActivity(_bookmarkedNoteKeys, note, note.isBookmarked);
+    await _saveUserActivity();
+    await cacheNotes();
+    notifyListeners();
+  }
+
+  Future<void> toggleLike(NoteModel note) async {
+    note.isLiked = !note.isLiked;
+    _updateActivity(_likedNoteKeys, note, note.isLiked);
+    await _saveUserActivity();
+    await cacheNotes();
     notifyListeners();
   }
 
@@ -52,6 +170,7 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> loadNotes() async {
+    await _loadUserActivity();
     await loadFromCache(); // load offline first
 
     isLoading = true;
@@ -59,7 +178,8 @@ class NotesProvider with ChangeNotifier {
 
     try {
       notes = await _service.fetchMixedFeed();
-      filteredNotes = notes; // update search list
+      _applyUserActivity();
+      filteredNotes = List<NoteModel>.from(notes); // update search list
       await cacheNotes(); // save offline
     } catch (e) {
       // fallback already handled by cache
@@ -69,51 +189,70 @@ class NotesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNote(String title, String subject, String fileUrl) async {
-    await _service.addNote(title, subject, fileUrl);
+  Future<void> addNote(
+    String title,
+    String subject,
+    String fileUrl,
+    String type,
+  ) async {
+    await _service.addNote(title, subject, fileUrl, type);
     await loadNotes();
   }
 
   Future<void> uploadNoteSecure(
-      String title, String subject, File file) async {
+      String title, String subject, String type, File file) async {
 
     final user = supabase.auth.currentUser;
-
-    final res = await supabase
-        .from('users')
-        .select()
-        .eq('id', user!.id)
-        .single();
-
-    if (res['role'] != 'teacher' || res['is_verified'] != true) {
-      throw Exception("Only verified teachers can upload");
+    if (user == null) {
+      throw Exception("Please log in to upload notes");
     }
 
-    await uploadNote(title, subject, file);
+    final role = await _resolveCurrentRole();
+    final canUpload = role == 'admin' || role == 'teacher';
+
+    if (!canUpload) {
+      throw Exception("Only admins and teachers can upload");
+    }
+
+    await uploadNote(title, subject, type, file);
   }
 
-  Future<void> uploadNote(String title, String subject, File file) async {
+  Future<void> uploadNote(
+    String title,
+    String subject,
+    String type,
+    File file,
+  ) async {
     isLoading = true;
     notifyListeners();
 
-    final fileUrl = await _service.uploadPDF(file);
+    try {
+      final fileUrl = await _service.uploadPDF(
+        file,
+        subject: subject,
+        type: type,
+      );
 
-    await _service.addNote(title, subject, fileUrl);
+      await _service.addNote(title, subject, fileUrl, type);
 
-    await loadNotes();
+      _uploadedNoteKeys.add(fileUrl);
+      await _saveUserActivity();
 
-    isLoading = false;
-    notifyListeners();
+      await loadNotes();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   void searchNotes(String query) {
     if (query.isEmpty) {
-      filteredNotes = notes;
+      filteredNotes = List<NoteModel>.from(notes);
     } else {
       filteredNotes = notes
           .where((note) =>
-      note.title.toLowerCase().contains(query.toLowerCase()) ||
-          note.subject.toLowerCase().contains(query.toLowerCase()))
+              note.title.toLowerCase().contains(query.toLowerCase()) ||
+              note.subject.toLowerCase().contains(query.toLowerCase()))
           .toList();
     }
     notifyListeners();

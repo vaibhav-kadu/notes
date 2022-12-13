@@ -1,15 +1,31 @@
 import '../../../core/supabase_client.dart';
 import '../models/note_model.dart';
 import 'dart:io';
-import '../../../core/supabase_client.dart';
 
 class NotesService {
+  String _slugify(String value) {
+    return value
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+  }
 
-  Future<void> addNote(String title, String subject, String fileUrl) async {
+  String _typeFolder(String type) {
+    return type == 'mcq_test' ? 'mcq-test' : 'notes';
+  }
+
+  Future<void> addNote(
+    String title,
+    String subject,
+    String fileUrl,
+    String type,
+  ) async {
     await supabase.from('notes').insert({
       'title': title,
       'subject': subject,
       'file_url': fileUrl,
+      'type': type,
     });
   }
 
@@ -32,29 +48,52 @@ class NotesService {
     List<NoteModel> popularList =
     (popular as List).map((e) => NoteModel.fromJson(e)).toList();
 
-    List<NoteModel> result = [];
+    final result = <NoteModel>[];
+    final seenKeys = <String>{};
 
     for (int i = 0; i < latestList.length; i++) {
-      result.add(latestList[i]);
+      final latestNote = latestList[i];
+      final latestKey = latestNote.id.isNotEmpty ? latestNote.id : latestNote.fileUrl;
+      if (seenKeys.add(latestKey)) {
+        result.add(latestNote);
+      }
 
       if (i < popularList.length) {
-        result.add(popularList[i]);
+        final popularNote = popularList[i];
+        final popularKey =
+            popularNote.id.isNotEmpty ? popularNote.id : popularNote.fileUrl;
+        if (seenKeys.add(popularKey)) {
+          result.add(popularNote);
+        }
       }
     }
 
     return result;
   }
 
-  Future<String> uploadPDF(File file) async {
-    final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+  Future<String> uploadPDF(
+    File file, {
+    required String subject,
+    required String type,
+  }) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception("Please log in before uploading a PDF");
+    }
 
-    await supabase.storage
-        .from('notes')
-        .upload(fileName, file);
+    final extension = file.path.contains('.')
+        ? file.path.split('.').last.toLowerCase()
+        : 'pdf';
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}.$extension';
+    final objectPath =
+        '${_slugify(subject)}/${_typeFolder(type)}/${user.id}/$fileName';
+
+    await supabase.storage.from('notes').upload(objectPath, file);
 
     final publicUrl = supabase.storage
         .from('notes')
-        .getPublicUrl(fileName);
+        .getPublicUrl(objectPath);
 
     return publicUrl;
   }

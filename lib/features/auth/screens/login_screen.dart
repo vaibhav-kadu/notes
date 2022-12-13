@@ -61,13 +61,22 @@ class LoginScreen extends StatelessWidget {
               child: Text("Login"),
             ),
 
+            if (provider.error != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  provider.error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                await Future.delayed(Duration(milliseconds: 10));
+
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => SignupScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => SignupScreen()),
                 );
               },
               child: Text("Create Account"),

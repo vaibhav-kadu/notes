@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import '../../core/constants/subjects.dart';
-import '../notes/provider/notes_provider.dart';
 
 class CategoryScreen extends StatelessWidget {
+  final ValueChanged<String> onSubjectSelected;
+
+  const CategoryScreen({
+    super.key,
+    required this.onSubjectSelected,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notes App"),
+        title: const Text("Notes App"),
         centerTitle: true,
         elevation: 2,
       ),
@@ -19,15 +25,11 @@ class CategoryScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            margin: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             child: ListTile(
               title: Text(subjects[index]),
-              trailing: Icon(Icons.arrow_forward),
-              onTap: () {
-                Navigator.pop(context);
-                Provider.of<NotesProvider>(context, listen: false)
-                    .filterBySubject(subjects[index]);
-              },
+              trailing: const Icon(Icons.arrow_forward),
+              onTap: () => onSubjectSelected(subjects[index]),
             ),
           );
         },
