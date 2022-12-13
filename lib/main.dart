@@ -6,6 +6,8 @@ import 'core/auth_wrapper.dart';
 import 'features/auth/provider/auth_provider.dart';
 import 'features/notes/provider/notes_provider.dart';
 import 'features/quiz/provider/quiz_provider.dart';
+import 'features/auth/screens/login_screen.dart';
+import 'features/auth/screens/signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +43,11 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: AuthWrapper(),
+
+        routes: {
+          '/login': (_) => LoginScreen(),
+          '/signup': (_) => SignupScreen(),
+        },
       ),
     );
   }
