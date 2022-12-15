@@ -224,8 +224,9 @@ flutter run
 
 ## 👨‍💻 Author
 
-**Vaibhav K**
+**Vaibhav Kadu**
 Final Year Engineering Student
+of SND College of Engineering, Yeola
 
 ---
 
@@ -239,7 +240,3 @@ This project demonstrates:
 * Production-ready features
 
 ---
-
-## ⭐ If you like this project
-
-Give it a ⭐ on GitHub!
