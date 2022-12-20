@@ -7,14 +7,16 @@ import '../features/home/home_screen.dart';
 import 'navigation/main_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AuthProvider>(context);
+    final provider = context.watch<AuthProvider>();
 
     if (provider.user != null) {
-      return MainScreen();
+      return const MainScreen();
     } else {
-      return LoginScreen();
+      return const LoginScreen();
     }
   }
 }

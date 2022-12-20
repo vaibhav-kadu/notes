@@ -5,10 +5,13 @@ import '../services/notes_service.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:async';
+import '../../../core/services/notification_service.dart';
 
 class NotesProvider with ChangeNotifier {
   final NotesService _service = NotesService();
   List<NoteModel> filteredNotes = [];
+  StreamSubscription? _notesSubscription;
 
   List<NoteModel> notes = [];
   bool isLoading = false;
@@ -16,6 +19,50 @@ class NotesProvider with ChangeNotifier {
   Set<String> _likedNoteKeys = {};
   Set<String> _uploadedNoteKeys = {};
   String? _loadedUserId;
+
+  NotesProvider() {
+    _initRealtime();
+  }
+
+  void _initRealtime() {
+    supabase.auth.onAuthStateChange.listen((_) {
+      _notesSubscription?.cancel();
+      _setupSubscription();
+    });
+    _setupSubscription();
+  }
+
+  void _setupSubscription() {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    _notesSubscription = supabase
+        .from('notes')
+        .stream(primaryKey: ['id'])
+        .listen((List<Map<String, dynamic>> data) {
+          for (final row in data) {
+            final updatedNote = NoteModel.fromJson(row);
+            if (updatedNote.uploaderId == userId) {
+              final existingIndex = notes.indexWhere((n) => n.id == updatedNote.id);
+              if (existingIndex != -1) {
+                final existing = notes[existingIndex];
+                if (updatedNote.likesCount > existing.likesCount) {
+                  NotificationService.showNotification(
+                    title: 'New Like! ❤️',
+                    body: 'Someone liked your note: ${updatedNote.title}',
+                  );
+                }
+              }
+            }
+          }
+        });
+  }
+
+  @override
+  void dispose() {
+    _notesSubscription?.cancel();
+    super.dispose();
+  }
 
   List<NoteModel> get bookmarkedNotes =>
       notes.where((note) => note.isBookmarked).toList();
@@ -158,8 +205,19 @@ class NotesProvider with ChangeNotifier {
   Future<void> toggleLike(NoteModel note) async {
     note.isLiked = !note.isLiked;
     _updateActivity(_likedNoteKeys, note, note.isLiked);
+
+    try {
+      // Sync to Supabase
+      await supabase.from('notes').update({
+        'likes_count': note.isLiked ? (note.likesCount + 1) : (note.likesCount - 1),
+      }).eq('id', note.id);
+    } catch (e) {
+      // Fallback if column doesn't exist
+    }
+
     await _saveUserActivity();
     await cacheNotes();
+
     notifyListeners();
   }
 
@@ -167,6 +225,17 @@ class NotesProvider with ChangeNotifier {
     filteredNotes =
         notes.where((note) => note.subject == subject).toList();
     notifyListeners();
+  }
+
+  Future<void> incrementView(NoteModel note) async {
+    await _service.incrementView(note.id);
+    // Update local state
+    final index = notes.indexWhere((n) => n.id == note.id);
+    if (index != -1) {
+      notes[index] = notes[index].copyWith(views: notes[index].views + 1);
+      filteredNotes = notes.map((n) => n.id == note.id ? notes[index] : n).toList();
+      notifyListeners();
+    }
   }
 
   Future<void> loadNotes() async {
