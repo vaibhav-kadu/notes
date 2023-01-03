@@ -205,4 +205,25 @@ class AuthProvider with ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> deleteUser(String userId) async {
+    // Delete from users table if it exists
+    try {
+      await Supabase.instance.client.from('users').delete().eq('id', userId);
+    } catch (_) {}
+    
+    // Note: Deleting from auth.users requires admin/service_role keys 
+    // or a custom Edge Function. For client-side apps without Edge Functions,
+    // we manage the 'public.users' state.
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAllUsers() async {
+    if (role != 'admin') return [];
+    try {
+      final res = await Supabase.instance.client.from('users').select();
+      return List<Map<String, dynamic>>.from(res as List);
+    } catch (_) {
+      return [];
+    }
+  }
 }

@@ -108,7 +108,10 @@ class _NotesScreenState extends State<NotesScreen> {
     // Increment view count
     context.read<NotesProvider>().incrementView(note);
 
-    if (note.type == 'notes' || trimmed.toLowerCase().endsWith('.pdf')) {
+    final isPdf = trimmed.toLowerCase().contains('.pdf') || 
+                  trimmed.toLowerCase().contains('?alt=media') && note.title.toLowerCase().endsWith('.pdf');
+
+    if (isPdf) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -116,9 +119,16 @@ class _NotesScreenState extends State<NotesScreen> {
         ),
       );
     } else {
+      // For images, docx, videos, etc. open in external app
       final uri = Uri.tryParse(trimmed);
       if (uri != null) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            _showSnack(context, 'No app found to open this file type.', isError: true);
+          }
+        }
       }
     }
   }
@@ -160,9 +170,7 @@ class _NotesScreenState extends State<NotesScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      gradient: isDark
-                          ? AppColors.darkPrimaryGradient
-                          : AppColors.lightPrimaryGradient,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: const Icon(Icons.school_rounded, color: Colors.white, size: 18),
@@ -296,6 +304,7 @@ class _NotesScreenState extends State<NotesScreen> {
                       onTap: () => _openNote(note),
                       onBookmark: () => provider.toggleBookmark(note),
                       onLike: () => provider.toggleLike(note),
+                      onDelete: authProvider.role == 'admin' ? () => _confirmDelete(context, note) : null,
                     );
                   },
                   childCount: provider.filteredNotes.length + 1,
@@ -314,6 +323,33 @@ class _NotesScreenState extends State<NotesScreen> {
       ),
     );
   }
+
+  Future<void> _confirmDelete(BuildContext context, NoteModel note) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Note?'),
+        content: Text('Are you sure you want to delete "${note.title}"? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await context.read<NotesProvider>().deleteNote(note.id);
+        if (mounted) _showSnack(context, 'Note deleted successfully');
+      } catch (e) {
+        if (mounted) _showSnack(context, 'Failed to delete note', isError: true);
+      }
+    }
+  }
 }
 
 // ─── Note Card (Instagram-style) ─────────────────────────────────────────────
@@ -323,6 +359,7 @@ class _NoteCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onBookmark;
   final VoidCallback onLike;
+  final VoidCallback? onDelete; // Added for admin
 
   const _NoteCard({
     required this.note,
@@ -330,6 +367,7 @@ class _NoteCard extends StatelessWidget {
     required this.onTap,
     required this.onBookmark,
     required this.onLike,
+    this.onDelete,
   });
 
   @override
@@ -388,6 +426,23 @@ class _NoteCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Delete button for admin
+                if (onDelete != null)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 18),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -624,7 +679,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Upload PDF',
+          Text('Upload File',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPri)),
           const SizedBox(height: 20),
 
@@ -695,7 +750,7 @@ class _UploadBottomSheetState extends State<_UploadBottomSheet> {
                     widget.onConfirm(title, _subject, _type);
                     Navigator.pop(context, true);
                   },
-                  child: const Text('Pick PDF'),
+                  child: const Text('Pick File'),
                 ),
               ),
             ],

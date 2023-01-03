@@ -55,6 +55,9 @@ class NotesProvider with ChangeNotifier {
               }
             }
           }
+        }, onError: (error) {
+          debugPrint('Supabase Realtime Stream Error: $error');
+          // Silence timeout errors to prevent app crashes
         });
   }
 
@@ -296,7 +299,7 @@ class NotesProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final fileUrl = await _service.uploadPDF(
+      final fileUrl = await _service.uploadFile(
         file,
         subject: subject,
         type: type,
@@ -325,5 +328,10 @@ class NotesProvider with ChangeNotifier {
           .toList();
     }
     notifyListeners();
+  }
+
+  Future<void> deleteNote(String noteId) async {
+    await _service.deleteNote(noteId);
+    await loadNotes();
   }
 }

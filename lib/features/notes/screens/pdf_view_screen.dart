@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PdfViewScreen extends StatelessWidget {
   final String title;
@@ -19,8 +20,17 @@ class PdfViewScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
-            onPressed: () {
-              // TODO: Implement download
+            onPressed: () async {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not open download link')),
+                  );
+                }
+              }
             },
           ),
         ],
