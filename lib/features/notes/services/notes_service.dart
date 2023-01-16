@@ -22,47 +22,43 @@ class NotesService {
     String fileUrl,
     String type,
   ) async {
-    final user = supabase.auth.currentUser;
     final Map<String, dynamic> data = {
       'title': title,
       'subject': subject,
       'file_url': fileUrl,
       'type': type,
-      'uploader_id': user?.id,
+      // uploader_id removed because it's missing in your DB
     };
 
-    // We removed 'uploader_email' completely because it was causing PGRST204 crashes.
-    // If you want to see the email, you MUST add the column to Supabase first.
-    await supabase.from('notes').insert(data);
+    // We strictly use only the columns that exist in your DB schema.
+    await supabase.from('notes').insert(data).select('id');
   }
 
   Future<void> incrementView(String noteId) async {
     try {
-      await supabase.rpc('increment_note_views', params: {'note_id': noteId});
+      // Manual increment using only 'views_count' column
+      final res = await supabase.from('notes').select('views_count').eq('id', noteId).maybeSingle();
+      if (res == null) return;
+      final current = res['views_count'] as int? ?? 0;
+      await supabase.from('notes').update({'views_count': current + 1}).eq('id', noteId);
     } catch (e) {
-      // Fallback if RPC doesn't exist
-      debugPrint('RPC increment_note_views failed, trying manual update. Error: $e');
-      try {
-        final res = await supabase.from('notes').select().eq('id', noteId).single();
-        final current = res['views_count'] ?? res['views'] ?? 0;
-        final colName = res.containsKey('views_count') ? 'views_count' : 'views';
-        await supabase.from('notes').update({colName: current + 1}).eq('id', noteId);
-      } catch (e2) {
-        debugPrint('Manual view increment failed. Error: $e2');
-      }
+      debugPrint('Manual view increment failed. Error: $e');
     }
   }
 
   Future<List<NoteModel>> fetchMixedFeed() async {
+    // Explicitly list ONLY columns that actually exist in your database
+    const columns = 'id, title, subject, file_url, created_at, thumbnail_url, type, views_count';
+
     final latest = await supabase
         .from('notes')
-        .select()
+        .select(columns)
         .order('created_at', ascending: false)
         .limit(10);
 
     final popular = await supabase
         .from('notes')
-        .select()
+        .select(columns)
         .order('views_count', ascending: false)
         .limit(10);
 

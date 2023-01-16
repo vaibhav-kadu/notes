@@ -6,10 +6,7 @@ class NoteModel {
   final String thumbnailUrl;
   final String type;
   final int views;
-  final int likesCount;
   final DateTime createdAt;
-  final String? uploaderEmail;
-  final String? uploaderId;
   bool isBookmarked;
   bool isLiked;
   bool isUploaded;
@@ -22,10 +19,7 @@ class NoteModel {
     required this.thumbnailUrl,
     required this.type,
     required this.views,
-    this.likesCount = 0,
     required this.createdAt,
-    this.uploaderEmail,
-    this.uploaderId,
     this.isBookmarked = false,
     this.isLiked = false,
     this.isUploaded = false,
@@ -43,15 +37,10 @@ class NoteModel {
       fileUrl: json['file_url']?.toString() ?? '',
       thumbnailUrl: json['thumbnail_url']?.toString() ?? '',
       type: json['type']?.toString() ?? 'notes',
-      views: (json['views_count'] ?? json['views'] ?? 0) is int
-          ? (json['views_count'] ?? json['views'] ?? 0) as int
-          : int.tryParse((json['views_count'] ?? json['views'] ?? 0).toString()) ?? 0,
-      likesCount: (json['likes_count'] ?? json['likes'] ?? 0) is int
-          ? (json['likes_count'] ?? json['likes'] ?? 0) as int
-          : int.tryParse((json['likes_count'] ?? json['likes'] ?? 0).toString()) ?? 0,
+      views: json['views_count'] is int
+          ? json['views_count'] as int
+          : int.tryParse(json['views_count']?.toString() ?? '') ?? 0,
       createdAt: createdAt ?? DateTime.now(),
-      uploaderEmail: null, // Omitted to prevent schema mismatch crashes
-      uploaderId: json['uploader_id']?.toString(),
       isBookmarked: json['is_bookmarked'] == true,
       isLiked: json['is_liked'] == true,
       isUploaded: json['is_uploaded'] == true,
@@ -66,10 +55,7 @@ class NoteModel {
     String? thumbnailUrl,
     String? type,
     int? views,
-    int? likesCount,
     DateTime? createdAt,
-    String? uploaderEmail,
-    String? uploaderId,
     bool? isBookmarked,
     bool? isLiked,
     bool? isUploaded,
@@ -82,10 +68,7 @@ class NoteModel {
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       type: type ?? this.type,
       views: views ?? this.views,
-      likesCount: likesCount ?? this.likesCount,
       createdAt: createdAt ?? this.createdAt,
-      uploaderEmail: uploaderEmail ?? this.uploaderEmail,
-      uploaderId: uploaderId ?? this.uploaderId,
       isBookmarked: isBookmarked ?? this.isBookmarked,
       isLiked: isLiked ?? this.isLiked,
       isUploaded: isUploaded ?? this.isUploaded,

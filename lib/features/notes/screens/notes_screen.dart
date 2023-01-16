@@ -480,20 +480,7 @@ class _NoteCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (note.uploaderEmail != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_outline_rounded, size: 12, color: textSec),
-                        const SizedBox(width: 4),
-                        Text(
-                          note.uploaderEmail!,
-                          style: TextStyle(fontSize: 11, color: textSec),
-                        ),
-                      ],
-                    ),
-                  ),
+                // uploaderEmail removed because it's missing in your DB
               ],
             ),
           ),
@@ -503,12 +490,12 @@ class _NoteCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             child: Row(
               children: [
-                // Like
+                // Like - label count removed as it's missing in DB
                 _ActionBtn(
                   icon: note.isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  label: note.likesCount > 0 ? '${note.likesCount}' : 'Like',
+                  label: 'Like',
                   color: note.isLiked ? Colors.red : textSec,
                   onTap: onLike,
                 ),

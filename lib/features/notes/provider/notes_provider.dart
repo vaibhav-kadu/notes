@@ -36,29 +36,14 @@ class NotesProvider with ChangeNotifier {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return;
 
+    // Temporarily disabled the Realtime stream because it automatically selects ALL columns,
+    // which causes the 'uploader_email' error if the column is missing in your DB.
+    /*
     _notesSubscription = supabase
         .from('notes')
         .stream(primaryKey: ['id'])
-        .listen((List<Map<String, dynamic>> data) {
-          for (final row in data) {
-            final updatedNote = NoteModel.fromJson(row);
-            if (updatedNote.uploaderId == userId) {
-              final existingIndex = notes.indexWhere((n) => n.id == updatedNote.id);
-              if (existingIndex != -1) {
-                final existing = notes[existingIndex];
-                if (updatedNote.likesCount > existing.likesCount) {
-                  NotificationService.showNotification(
-                    title: 'New Like! ❤️',
-                    body: 'Someone liked your note: ${updatedNote.title}',
-                  );
-                }
-              }
-            }
-          }
-        }, onError: (error) {
-          debugPrint('Supabase Realtime Stream Error: $error');
-          // Silence timeout errors to prevent app crashes
-        });
+        ...
+    */
   }
 
   @override
@@ -209,14 +194,14 @@ class NotesProvider with ChangeNotifier {
     note.isLiked = !note.isLiked;
     _updateActivity(_likedNoteKeys, note, note.isLiked);
 
+    // Sync to Supabase - likes_count removed as it's missing in DB
+    /*
     try {
-      // Sync to Supabase
       await supabase.from('notes').update({
-        'likes_count': note.isLiked ? (note.likesCount + 1) : (note.likesCount - 1),
+        'likes_count': ...,
       }).eq('id', note.id);
-    } catch (e) {
-      // Fallback if column doesn't exist
-    }
+    } catch (e) {}
+    */
 
     await _saveUserActivity();
     await cacheNotes();
