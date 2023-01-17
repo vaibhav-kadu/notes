@@ -87,23 +87,18 @@ class _LoginScreenState extends State<LoginScreen>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        gradient: isDark
-                            ? AppColors.darkPrimaryGradient
-                            : AppColors.lightPrimaryGradient,
+                        color: isDark ? AppColors.darkSurface : Colors.white,
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: primary.withValues(alpha: 0.35),
+                            color: primary.withValues(alpha: 0.2),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.school_rounded,
-                        color: Colors.white,
-                        size: 40,
-                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Image.asset('assets/app_icon.png'),
                     ),
 
                     const SizedBox(height: 24),

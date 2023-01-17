@@ -170,10 +170,11 @@ class _NotesScreenState extends State<NotesScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: isDark ? AppColors.darkSurface : Colors.white,
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 18),
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset('assets/app_icon.png'),
                   ),
                   const SizedBox(width: 10),
                   Text(
