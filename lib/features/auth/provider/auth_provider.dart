@@ -177,8 +177,9 @@ class AuthProvider with ChangeNotifier {
       if (res != null) {
         role = res['role']?.toString() ?? metadataRole ?? role;
         isVerified = res['is_verified'] == true || metadataVerified;
-      } else if (metadataRole != null) {
-        role = metadataRole;
+      } else {
+        // User exists in Auth but not in public.users table -> Migrate them
+        role = metadataRole ?? 'student';
         isVerified = metadataVerified;
         await _saveUserRecord(
           userId: user.id,
@@ -186,8 +187,6 @@ class AuthProvider with ChangeNotifier {
           resolvedRole: role!,
           resolvedIsVerified: isVerified,
         );
-      } else if (!loadedFromCache) {
-        throw Exception('Role not found for this account');
       }
 
       if (role != null) {
