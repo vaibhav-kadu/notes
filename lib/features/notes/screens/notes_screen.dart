@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'image_view_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -103,31 +104,55 @@ class _NotesScreenState extends State<NotesScreen> {
 
   Future<void> _openNote(NoteModel note) async {
     final trimmed = note.fileUrl.trim();
+
     if (trimmed.isEmpty) return;
 
-    // Increment view count
     context.read<NotesProvider>().incrementView(note);
 
-    final isPdf = trimmed.toLowerCase().contains('.pdf') || 
-                  trimmed.toLowerCase().contains('?alt=media') && note.title.toLowerCase().endsWith('.pdf');
-
-    if (isPdf) {
+    // PDF
+    if (note.isPdf) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => PdfViewScreen(title: note.title, url: trimmed),
+          builder: (_) => PdfViewScreen(
+            title: note.title,
+            url: trimmed,
+          ),
         ),
       );
-    } else {
-      // For images, docx, videos, etc. open in external app
-      final uri = Uri.tryParse(trimmed);
-      if (uri != null) {
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          if (mounted) {
-            _showSnack(context, 'No app found to open this file type.', isError: true);
-          }
+      return;
+    }
+
+    // IMAGE
+    if (note.isImage) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ImageViewScreen(
+            imageUrl: trimmed,
+            title: note.title,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // VIDEO / DOC / OTHER
+    final uri = Uri.tryParse(trimmed);
+
+    if (uri != null) {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        if (mounted) {
+          _showSnack(
+            context,
+            'No app found to open this file.',
+            isError: true,
+          );
         }
       }
     }
@@ -371,6 +396,53 @@ class _NoteCard extends StatelessWidget {
     this.onDelete,
   });
 
+  Widget _buildThumbnail(NoteModel note) {
+
+    // IMAGE
+    if (note.isImage) {
+      return Image.network(
+        note.fileUrl,
+        height: 220,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+
+    // PDF
+    if (note.isPdf) {
+      return const _ThumbnailPlaceholder(
+        icon: Icons.picture_as_pdf_rounded,
+        color: Colors.red,
+        label: 'PDF Note',
+      );
+    }
+
+    // VIDEO
+    if (note.isVideo) {
+      return const _ThumbnailPlaceholder(
+        icon: Icons.play_circle_fill_rounded,
+        color: Colors.deepPurple,
+        label: 'Video Lecture',
+      );
+    }
+
+    // DOC
+    if (note.isDoc) {
+      return const _ThumbnailPlaceholder(
+        icon: Icons.description_rounded,
+        color: Colors.blue,
+        label: 'Document',
+      );
+    }
+
+    // DEFAULT
+    return const _ThumbnailPlaceholder(
+      icon: Icons.insert_drive_file_rounded,
+      color: Colors.grey,
+      label: 'File',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final surface  = isDark ? AppColors.darkSecondaryBackground : AppColors.lightBackground;
@@ -397,15 +469,7 @@ class _NoteCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: note.thumbnailUrl.trim().isNotEmpty
-                      ? Image.network(
-                    note.thumbnailUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _ThumbnailPlaceholder(isTest: isTest),
-                  )
-                      : _ThumbnailPlaceholder(isTest: isTest),
+                  child: _buildThumbnail(note),
                 ),
                 // Type badge
                 Positioned(
@@ -540,29 +604,38 @@ class _NoteCard extends StatelessWidget {
 }
 
 class _ThumbnailPlaceholder extends StatelessWidget {
-  final bool isTest;
-  const _ThumbnailPlaceholder({required this.isTest});
+
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  const _ThumbnailPlaceholder({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 180,
+      height: 220,
       width: double.infinity,
-      color: isTest ? Colors.orange.withValues(alpha: 0.08) : Colors.blue.withValues(alpha: 0.08),
+      color: color.withValues(alpha: 0.08),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            isTest ? Icons.quiz_rounded : Icons.picture_as_pdf_rounded,
-            size: 52,
-            color: isTest ? Colors.orange : Colors.blue,
+            icon,
+            size: 60,
+            color: color,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
-            isTest ? 'MCQ Test' : 'PDF Note',
+            label,
             style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: isTest ? Colors.orange : Colors.blue,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: color,
             ),
           ),
         ],

@@ -3,20 +3,35 @@ class NoteModel {
   final String title;
   final String subject;
   final String fileUrl;
-  final String thumbnailUrl;
-  final String type;
+  final String type; // pdf, image, video, doc
+  final String? thumbnailUrl;
   final int views;
   final DateTime createdAt;
   bool isBookmarked;
   bool isLiked;
   bool isUploaded;
+  String get extension {
+    final uri = Uri.parse(fileUrl);
+    return uri.path.split('.').last.toLowerCase();
+  }
+
+  bool get isPdf => extension == 'pdf';
+
+  bool get isImage =>
+      ['jpg', 'jpeg', 'png', 'webp'].contains(extension);
+
+  bool get isVideo =>
+      ['mp4', 'mov', 'avi', 'mkv'].contains(extension);
+
+  bool get isDoc =>
+      ['doc', 'docx', 'ppt', 'pptx'].contains(extension);
 
   NoteModel({
     required this.id,
     required this.title,
     required this.subject,
     required this.fileUrl,
-    required this.thumbnailUrl,
+    this.thumbnailUrl,
     required this.type,
     required this.views,
     required this.createdAt,
