@@ -13,6 +13,8 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _nameCtrl     = TextEditingController();
+  final _phoneCtrl    = TextEditingController();
   final _emailCtrl    = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl  = TextEditingController();
@@ -24,11 +26,13 @@ class _SignupScreenState extends State<SignupScreen> {
   static const _roles = [
     {'value': 'student',  'label': 'Student',  'icon': Icons.school_rounded},
     {'value': 'teacher',  'label': 'Teacher',  'icon': Icons.cast_for_education_rounded},
-    {'value': 'admin',    'label': 'Admin',    'icon': Icons.admin_panel_settings_rounded},
+    {'value': 'admin',    'label': 'Ad.min',    'icon': Icons.admin_panel_settings_rounded},
   ];
 
   @override
   void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
@@ -36,11 +40,19 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _signup() async {
+    final name     = _nameCtrl.text.trim();
+    final phone    = _phoneCtrl.text.trim();
     final email    = _emailCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
     final confirm  = _confirmCtrl.text.trim();
 
-    if (email.isEmpty || password.isEmpty) return;
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all required fields')),
+      );
+      return;
+    }
+    
     if (password != confirm) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Passwords do not match')),
@@ -50,7 +62,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _loading = true);
     final provider = context.read<AuthProvider>();
-    await provider.signup(email, password, _role);
+    await provider.signup(
+      email: email, 
+      password: password, 
+      roleInput: _role,
+      displayName: name,
+      phone: phone,
+    );
     if (!mounted) return;
     setState(() => _loading = false);
 
@@ -177,6 +195,36 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
 
                 const SizedBox(height: 24),
+
+                // ── Full Name ──────────────────────────────
+                _Label(text: 'Full Name', isDark: isDark),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _nameCtrl,
+                  keyboardType: TextInputType.name,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your full name',
+                    prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Phone ──────────────────────────────
+                _Label(text: 'Phone (Optional)', isDark: isDark),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    hintText: '+1 234 567 890',
+                    prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
 
                 // ── Email ──────────────────────────────
                 _Label(text: 'Email', isDark: isDark),

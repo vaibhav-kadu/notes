@@ -7,11 +7,15 @@ class AuthService {
     String email,
     String password,
     String role,
+    String displayName,
+    String phone,
   ) async {
     return await supabase.auth.signUp(
       email: email,
       password: password,
+      phone: phone.isNotEmpty ? phone : null,
       data: {
+        'display_name': displayName,
         'role': role,
         'is_verified': true,
       },

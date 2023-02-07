@@ -89,10 +89,23 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(email, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPri)),
+                  Text(widget.user['display_name'] ?? email, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPri)),
+                  if (widget.user['display_name'] != null)
+                    Text(email, style: TextStyle(fontSize: 14, color: textSec)),
                   const SizedBox(height: 4),
-                  Text(role.toString().toUpperCase(), 
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(role.toString().toUpperCase(), 
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
+                      if (widget.user['phone']?.toString().isNotEmpty ?? false) ...[
+                        const SizedBox(width: 12),
+                        Icon(Icons.phone_outlined, size: 14, color: textSec),
+                        const SizedBox(width: 4),
+                        Text('${widget.user['phone']}', style: TextStyle(fontSize: 14, color: textSec)),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   
                   // Action Button

@@ -110,7 +110,9 @@ class _UsersScreenState extends State<UsersScreen> {
               leading: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 child: Text(
-                  email[0].toUpperCase(),
+                  (user['display_name']?.toString().isNotEmpty ?? false)
+                      ? user['display_name']![0].toUpperCase()
+                      : email[0].toUpperCase(),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -121,7 +123,9 @@ class _UsersScreenState extends State<UsersScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      email,
+                      (user['display_name']?.toString().isNotEmpty ?? false)
+                          ? user['display_name']
+                          : email,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -138,6 +142,8 @@ class _UsersScreenState extends State<UsersScreen> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (user['display_name']?.toString().isNotEmpty ?? false)
+                    Text(email, style: TextStyle(fontSize: 12, color: textSec)),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -152,11 +158,13 @@ class _UsersScreenState extends State<UsersScreen> {
                       const SizedBox(width: 12),
                       Icon(Icons.description_outlined, size: 12, color: textSec),
                       const SizedBox(width: 4),
-                      Text('$postCount posts', style: TextStyle(fontSize: 11, color: textSec)),
-                      const SizedBox(width: 12),
-                      Icon(Icons.report_gmailerrorred_rounded, size: 12, color: Colors.orange),
-                      const SizedBox(width: 4),
-                      Text('$reportCount', style: TextStyle(fontSize: 11, color: textSec)),
+                      Text('$postCount', style: TextStyle(fontSize: 11, color: textSec)),
+                      if (user['phone']?.toString().isNotEmpty ?? false) ...[
+                        const SizedBox(width: 12),
+                        Icon(Icons.phone_outlined, size: 12, color: textSec),
+                        const SizedBox(width: 4),
+                        Text('${user['phone']}', style: TextStyle(fontSize: 11, color: textSec)),
+                      ],
                     ],
                   ),
                 ],
