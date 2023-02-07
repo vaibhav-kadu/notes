@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/auth/provider/auth_provider.dart';
+import '../../features/admin/screens/users_screen.dart';
 import '../../features/category/category_screen.dart';
 import '../../features/notes/provider/notes_provider.dart';
 import '../../features/notes/screens/notes_screen.dart';
@@ -37,6 +39,23 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final isAdmin = authProvider.role == 'admin';
+
+    final List<Widget> screens = [
+      const NotesScreen(),
+      CategoryScreen(onSubjectSelected: _openNotesForSubject),
+      if (isAdmin) const UsersScreen(),
+      const ProfileScreen(),
+    ];
+
+    final List<BottomNavigationBarItem> navItems = [
+      const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: "Feed"),
+      const BottomNavigationBarItem(icon: Icon(Icons.category_rounded), label: "Category"),
+      if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.people_rounded), label: "Users"),
+      const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: "Profile"),
+    ];
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -46,6 +65,9 @@ class _MainScreenState extends State<MainScreen> {
           setState(() {
             _history.removeLast();
             _currentIndex = _history.last;
+            if (_currentIndex >= screens.length) {
+              _currentIndex = 0;
+            }
           });
         } else {
           if (_currentIndex == 0) {
@@ -61,20 +83,13 @@ class _MainScreenState extends State<MainScreen> {
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,
-          children: [
-            const NotesScreen(),
-            CategoryScreen(onSubjectSelected: _openNotesForSubject),
-            const ProfileScreen(),
-          ],
+          children: screens,
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Feed"),
-            BottomNavigationBarItem(icon: Icon(Icons.category), label: "Category"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          ],
+          type: BottomNavigationBarType.fixed,
+          items: navItems,
         ),
       ),
     );

@@ -56,7 +56,8 @@ class AuthProvider with ChangeNotifier {
         'role': resolvedRole,
         'is_verified': resolvedIsVerified,
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error saving user record to DB: $e');
       // Some Supabase projects in this app do not have a public.users table.
       // Auth metadata + local cache are enough for the current flows.
     }
@@ -219,10 +220,49 @@ class AuthProvider with ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchAllUsers() async {
     if (role != 'admin') return [];
     try {
-      final res = await Supabase.instance.client.from('users').select();
-      return List<Map<String, dynamic>>.from(res as List);
-    } catch (_) {
+      // 1. Fetch all users
+      final usersRes = await Supabase.instance.client.from('users').select();
+      final users = List<Map<String, dynamic>>.from(usersRes as List);
+
+      // 2. Fetch post counts for all users (group by uploader_id)
+      final postsRes = await Supabase.instance.client
+          .from('notes')
+          .select('uploader_id');
+      
+      final postCounts = <String, int>{};
+      for (final post in (postsRes as List)) {
+        final uid = post['uploader_id']?.toString();
+        if (uid != null) {
+          postCounts[uid] = (postCounts[uid] ?? 0) + 1;
+        }
+      }
+
+      // 3. Merge counts into user objects
+      for (var u in users) {
+        u['post_count'] = postCounts[u['id']] ?? 0;
+        u['report_count'] = u['report_count'] ?? 0; // fallback if column missing
+        u['is_deactivated'] = u['is_deactivated'] == true;
+      }
+
+      return users;
+    } catch (e) {
+      debugPrint('fetchAllUsers error: $e');
       return [];
     }
+  }
+
+  Future<void> toggleUserStatus(String userId, bool deactivate) async {
+    await Supabase.instance.client
+        .from('users')
+        .update({'is_deactivated': deactivate})
+        .eq('id', userId);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchUserPosts(String userId) async {
+    final res = await Supabase.instance.client
+        .from('notes')
+        .select()
+        .eq('uploader_id', userId);
+    return List<Map<String, dynamic>>.from(res as List);
   }
 }
