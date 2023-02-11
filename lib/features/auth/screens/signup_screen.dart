@@ -26,7 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
   static const _roles = [
     {'value': 'student',  'label': 'Student',  'icon': Icons.school_rounded},
     {'value': 'teacher',  'label': 'Teacher',  'icon': Icons.cast_for_education_rounded},
-    {'value': 'admin',    'label': 'Ad.min',    'icon': Icons.admin_panel_settings_rounded},
+    // {'value': 'admin',    'label': 'Admin',    'icon': Icons.admin_panel_settings_rounded, 'hint': 'Full system control. Reserved for official moderators only.'},
   ];
 
   @override
@@ -93,7 +93,7 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+            padding: const EdgeInsets.fromLTRB(28, 10, 28, 24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -116,7 +116,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Image.asset('assets/app_icon.png'),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
                 Text(
                   'Create Account',
@@ -133,21 +133,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: TextStyle(fontSize: 14, color: textSec),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
-                // ── Role selector ──────────────────────
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'I am a',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: textSec,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
                 Row(
                   children: _roles.map((r) {
                     final selected = _role == r['value'];
@@ -157,42 +144,60 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
                             color: selected
                                 ? cs.primary.withValues(alpha: 0.1)
                                 : (isDark
                                 ? AppColors.darkSecondaryBackground
                                 : AppColors.lightSecondaryBackground),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: selected ? cs.primary : border,
                               width: selected ? 2 : 1,
                             ),
                           ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                r['icon'] as IconData,
-                                size: 24,
+                          child: Center(
+                            child: Text(
+                              r['label'] as String,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
                                 color: selected ? cs.primary : textSec,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                r['label'] as String,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: selected ? cs.primary : textSec,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     );
                   }).toList(),
                 ),
+
+                /*
+                if (_role == 'admin') ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 16, color: Colors.amber),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _roles.firstWhere((r) => r['value'] == 'admin')['hint'] as String,
+                            style: const TextStyle(fontSize: 12, color: Colors.amber, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                */
 
                 const SizedBox(height: 24),
 
