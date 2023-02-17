@@ -340,12 +340,26 @@ class _NotesScreenState extends State<NotesScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
-        floatingActionButton: authProvider.canManageNotes
-            ? FloatingActionButton(
-          onPressed: () => _pickAndUpload(context),
-          child: const Icon(Icons.add_rounded),
-        )
-            : null,
+        floatingActionButton: FutureBuilder<bool>(
+          future: provider.isTeacherApproved(),
+          builder: (context, snapshot) {
+
+            final approved = snapshot.data ?? false;
+
+            final canUpload =
+                authProvider.role == 'admin' ||
+                    (authProvider.role == 'teacher' && approved);
+
+            if (!canUpload) {
+              return const SizedBox();
+            }
+
+            return FloatingActionButton(
+              onPressed: () => _pickAndUpload(context),
+              child: const Icon(Icons.add_rounded),
+            );
+          },
+        ),
       ),
     );
   }

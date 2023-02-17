@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/supabase_client.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -81,18 +82,46 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       final res = await _service.signUp(email, password, roleInput, displayName, phone);
       if (res.user != null) {
+
         user = res.user;
+
+        final isTeacher = roleInput == 'teacher';
+
         role = roleInput;
-        isVerified = true;
+
+        // Teacher requires approval
+        isVerified = roleInput == 'student';
+
         await _saveUserRecord(
           userId: user!.id,
           email: email,
           resolvedRole: roleInput,
-          resolvedIsVerified: true,
+          resolvedIsVerified: isVerified,
           displayName: displayName,
           phone: phone,
         );
+
+        // Notify admins about teacher request
+        if (isTeacher) {
+
+          final admins = await supabase
+              .from('users')
+              .select('id')
+              .eq('role', 'admin');
+
+          for (final admin in admins) {
+
+            await supabase.from('notifications').insert({
+              'user_id': admin['id'],
+              'title': 'New Teacher Request',
+              'message': '$email requested teacher access',
+              'type': 'teacher_request',
+            });
+          }
+        }
+
         await _cacheAccountState(user!.id);
+
         await fetchUserRole();
       }
       error = null;

@@ -80,6 +80,21 @@ class NotesProvider with ChangeNotifier {
     return prefs.getString('user_role_${user.id}');
   }
 
+  Future<bool> isTeacherApproved() async {
+
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return false;
+
+    final data = await supabase
+        .from('users')
+        .select('is_teacher_approved')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    return data?['is_teacher_approved'] == true;
+  }
+
   bool _matchesActivity(Set<String> activityKeys, NoteModel note) {
     final key = _noteKey(note);
     return activityKeys.contains(key) || activityKeys.contains(note.fileUrl);
@@ -265,7 +280,19 @@ class NotesProvider with ChangeNotifier {
     }
 
     final role = await _resolveCurrentRole();
-    final canUpload = role == 'admin' || role == 'teacher';
+
+    bool canUpload = false;
+
+    if (role == 'admin') {
+      canUpload = true;
+    }
+
+    if (role == 'teacher') {
+
+      final approved = await isTeacherApproved();
+
+      canUpload = approved;
+    }
 
     if (!canUpload) {
       throw Exception("Only admins and teachers can upload");
