@@ -13,6 +13,8 @@ import '../models/note_model.dart';
 import '../provider/notes_provider.dart';
 import '../../../core/constants/subjects.dart';
 import 'pdf_view_screen.dart';
+import '../../notifications/screens/notifications_screen.dart';
+import '../../notifications/provider/notification_provider.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -213,6 +215,52 @@ class _NotesScreenState extends State<NotesScreen> {
                 ],
               ),
               actions: [
+                Consumer<NotificationProvider>(
+                  builder: (context, notifyProvider, _) {
+
+                    return Stack(
+                      children: [
+
+                        IconButton(
+                          icon: const Icon(
+                            Icons.notifications_none_rounded,
+                          ),
+                          onPressed: () {
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                const NotificationsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        if (notifyProvider.unreadCount > 0)
+
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${notifyProvider.unreadCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
                 IconButton(
                   icon: Icon(
                     isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,

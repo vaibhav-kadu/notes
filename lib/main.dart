@@ -12,6 +12,7 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/signup_screen.dart';
 import 'features/notes/provider/notes_provider.dart';
 import 'features/quiz/provider/quiz_provider.dart';
+import 'features/notifications/provider/notification_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,7 @@ class NotesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkSession()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => QuizProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider(),),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
