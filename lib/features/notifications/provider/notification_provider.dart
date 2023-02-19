@@ -45,4 +45,54 @@ class NotificationProvider with ChangeNotifier {
 
     await loadNotifications();
   }
+
+  Future<void> approveTeacher(
+      AppNotification notification,
+      ) async {
+
+    if (notification.referenceId == null) return;
+
+    // Approve teacher
+    await supabase
+        .from('users')
+        .update({
+      'is_teacher_approved': true,
+    })
+        .eq('id', notification.referenceId!);
+
+    // Notify teacher
+    await supabase.from('notifications').insert({
+      'user_id': notification.referenceId,
+      'title': 'Teacher Access Approved',
+      'message':
+      'Your teacher account has been approved by admin.',
+      'type': 'teacher_approved',
+    });
+
+    // Mark notification read
+    await markAsRead(notification.id);
+
+    await loadNotifications();
+  }
+
+  Future<void> rejectTeacher(
+      AppNotification notification,
+      ) async {
+
+    if (notification.referenceId == null) return;
+
+    // Notify teacher
+    await supabase.from('notifications').insert({
+      'user_id': notification.referenceId,
+      'title': 'Teacher Request Rejected',
+      'message':
+      'Your teacher request was rejected by admin.',
+      'type': 'teacher_rejected',
+    });
+
+    // Mark read
+    await markAsRead(notification.id);
+
+    await loadNotifications();
+  }
 }

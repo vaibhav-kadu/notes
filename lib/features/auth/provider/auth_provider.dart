@@ -116,6 +116,7 @@ class AuthProvider with ChangeNotifier {
               'title': 'New Teacher Request',
               'message': '$email requested teacher access',
               'type': 'teacher_request',
+              'reference_id': user!.id,
             });
           }
         }

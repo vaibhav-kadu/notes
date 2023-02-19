@@ -70,7 +70,44 @@ class _NotificationsScreenState
 
             subtitle: Text(item.message),
 
-            trailing: item.isRead
+            isThreeLine:
+            item.type == 'teacher_request',
+
+            trailing: item.type == 'teacher_request'
+
+                ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                IconButton(
+                  icon: const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                  ),
+                  onPressed: () async {
+
+                    await context
+                        .read<NotificationProvider>()
+                        .approveTeacher(item);
+                  },
+                ),
+
+                IconButton(
+                  icon: const Icon(
+                    Icons.cancel,
+                    color: Colors.red,
+                  ),
+                  onPressed: () async {
+
+                    await context
+                        .read<NotificationProvider>()
+                        .rejectTeacher(item);
+                  },
+                ),
+              ],
+            )
+
+                : item.isRead
                 ? null
                 : const Icon(
               Icons.brightness_1,
