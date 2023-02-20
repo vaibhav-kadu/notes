@@ -6,6 +6,7 @@ class NoteModel {
   final String type; // pdf, image, video, doc
   final String? thumbnailUrl;
   final int views;
+  final int likesCount;
   final DateTime createdAt;
   bool isBookmarked;
   bool isLiked;
@@ -34,6 +35,7 @@ class NoteModel {
     this.thumbnailUrl,
     required this.type,
     required this.views,
+    required this.likesCount,
     required this.createdAt,
     this.isBookmarked = false,
     this.isLiked = false,
@@ -55,6 +57,11 @@ class NoteModel {
       views: json['views_count'] is int
           ? json['views_count'] as int
           : int.tryParse(json['views_count']?.toString() ?? '') ?? 0,
+      likesCount: json['likes_count'] is int
+          ? json['likes_count']
+          : int.tryParse(
+        json['likes_count']?.toString() ?? '',
+      ) ?? 0,
       createdAt: createdAt ?? DateTime.now(),
       isBookmarked: json['is_bookmarked'] == true,
       isLiked: json['is_liked'] == true,
@@ -70,6 +77,7 @@ class NoteModel {
     String? thumbnailUrl,
     String? type,
     int? views,
+    int? likesCount,
     DateTime? createdAt,
     bool? isBookmarked,
     bool? isLiked,
@@ -83,6 +91,7 @@ class NoteModel {
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       type: type ?? this.type,
       views: views ?? this.views,
+      likesCount: likesCount ?? this.likesCount,
       createdAt: createdAt ?? this.createdAt,
       isBookmarked: isBookmarked ?? this.isBookmarked,
       isLiked: isLiked ?? this.isLiked,

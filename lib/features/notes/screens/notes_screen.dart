@@ -622,7 +622,7 @@ class _NoteCard extends StatelessWidget {
                   icon: note.isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  label: 'Like',
+                  label: '${note.likesCount}',
                   color: note.isLiked ? Colors.red : textSec,
                   onTap: onLike,
                 ),

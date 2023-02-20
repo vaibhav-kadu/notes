@@ -206,19 +206,76 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> toggleLike(NoteModel note) async {
-    note.isLiked = !note.isLiked;
-    _updateActivity(_likedNoteKeys, note, note.isLiked);
 
-    // Sync to Supabase - likes_count removed as it's missing in DB
-    /*
-    try {
-      await supabase.from('notes').update({
-        'likes_count': ...,
-      }).eq('id', note.id);
-    } catch (e) {}
-    */
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return;
+
+    final alreadyLiked = note.isLiked;
+
+    note.isLiked = !alreadyLiked;
+
+    final updatedLikes =
+    alreadyLiked
+        ? note.likesCount - 1
+        : note.likesCount + 1;
+
+    final index =
+    notes.indexWhere((e) => e.id == note.id);
+
+    if (index != -1) {
+
+      notes[index] = notes[index].copyWith(
+        isLiked: note.isLiked,
+        likesCount: updatedLikes,
+      );
+    }
+
+    _updateActivity(
+      _likedNoteKeys,
+      note,
+      note.isLiked,
+    );
+
+    await supabase
+        .from('notes')
+        .update({
+      'likes_count': updatedLikes,
+    })
+        .eq('id', note.id);
+
+    // Notify uploader
+    if (!alreadyLiked) {
+
+      final data = await supabase
+          .from('notes')
+          .select('uploader_id,title')
+          .eq('id', note.id)
+          .maybeSingle();
+
+      final uploaderId = data?['uploader_id'];
+
+      if (uploaderId != null &&
+          uploaderId != user.id) {
+
+        await supabase
+            .from('notifications')
+            .insert({
+
+          'user_id': uploaderId,
+
+          'title': 'New Like ❤️',
+
+          'message':
+          'Someone liked your note "${note.title}"',
+
+          'type': 'like',
+        });
+      }
+    }
 
     await _saveUserActivity();
+
     await cacheNotes();
 
     notifyListeners();

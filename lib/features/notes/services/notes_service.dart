@@ -15,18 +15,20 @@ class NotesService {
   String _typeFolder(String type) {
     return type == 'mcq_test' ? 'mcq-test' : 'notes';
   }
-
+  final user = supabase.auth.currentUser;
   Future<void> addNote(
     String title,
     String subject,
     String fileUrl,
     String type,
+
   ) async {
     final Map<String, dynamic> data = {
       'title': title,
       'subject': subject,
       'file_url': fileUrl,
       'type': type,
+      'uploader_id': user?.id,
       // uploader_id removed because it's missing in your DB
     };
 
@@ -48,7 +50,8 @@ class NotesService {
 
   Future<List<NoteModel>> fetchMixedFeed() async {
     // Explicitly list ONLY columns that actually exist in your database
-    const columns = 'id, title, subject, file_url, created_at, thumbnail_url, type, views_count';
+    const columns =
+        'id, title, subject, file_url, created_at, thumbnail_url, type, views_count, likes_count, uploader_id';
 
     final latest = await supabase
         .from('notes')
