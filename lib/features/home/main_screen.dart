@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../features/category/category_screen.dart';
 import '../../features/notes/provider/notes_provider.dart';
 import '../../features/notes/screens/notes_screen.dart';
-import '../../features/profile/profile_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
 import 'package:notes/core/theme/app_colors.dart';
 import 'package:notes/core/theme/theme_provider.dart';
 
