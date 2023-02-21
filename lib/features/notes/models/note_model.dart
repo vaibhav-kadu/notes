@@ -98,4 +98,6 @@ class NoteModel {
       isUploaded: isUploaded ?? this.isUploaded,
     );
   }
+
+
 }

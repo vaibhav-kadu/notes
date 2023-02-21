@@ -31,11 +31,14 @@ class ProfileScreen extends StatelessWidget {
     final role =
         auth.role ?? 'student';
 
-    final isTeacher =
-        auth.role == 'teacher';
-
     final verified =
         auth.isVerified;
+
+    final email =
+        auth.user?.email ?? 'user@email.com';
+
+    final primary =
+        Theme.of(context).colorScheme.primary;
 
     return Scaffold(
 
@@ -43,136 +46,184 @@ class ProfileScreen extends StatelessWidget {
 
         slivers: [
 
+          // ───────────────── APP BAR ─────────────────
+
           SliverAppBar(
 
             pinned: true,
 
-            expandedHeight: 280,
+            expandedHeight: 300,
+
+            centerTitle: true,
+
+            title: const Text(
+              'Profile',
+            ),
 
             flexibleSpace: FlexibleSpaceBar(
 
-              background: Container(
+              background: SafeArea(
 
-                padding: const EdgeInsets.only(
-                  top: 80,
-                  left: 20,
-                  right: 20,
-                ),
+                child: Padding(
 
-                child: Column(
+                  padding: const EdgeInsets.only(
+                    top: 30,
+                    left: 20,
+                    right: 20,
+                  ),
 
-                  children: [
+                  child: Column(
 
-                    // Avatar
-                    CircleAvatar(
-                      radius: 45,
-                      backgroundColor:
-                      Theme.of(context)
-                          .colorScheme
-                          .primary,
+                    children: [
 
-                      child: Text(
-                        auth.user?.email
-                            ?.substring(0, 1)
-                            .toUpperCase() ??
-                            'U',
+                      // Avatar
 
-                        style: const TextStyle(
-                          fontSize: 34,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                      CircleAvatar(
 
-                    const SizedBox(height: 14),
+                        radius: 48,
 
-                    // Email + badge
-                    Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
+                        backgroundColor: primary,
 
-                      children: [
+                        child: Text(
 
-                        Flexible(
-                          child: Text(
-                            auth.user?.email ?? '',
+                          email
+                              .substring(0, 1)
+                              .toUpperCase(),
 
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight:
-                              FontWeight.w700,
-                            ),
-
-                            overflow:
-                            TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 34,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ),
 
-                        if (verified)
+                      const SizedBox(height: 14),
 
-                          const Padding(
-                            padding:
-                            EdgeInsets.only(left: 6),
+                      // Email + verified
 
-                            child: Icon(
-                              Icons.verified,
-                              color: Colors.blue,
-                              size: 20,
+                      Row(
+
+                        mainAxisAlignment:
+                        MainAxisAlignment.center,
+
+                        children: [
+
+                          Flexible(
+
+                            child: Text(
+
+                              email,
+
+                              overflow:
+                              TextOverflow.ellipsis,
+
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight:
+                                FontWeight.w700,
+                              ),
                             ),
                           ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 4),
+                          if (verified)
 
-                    Text(
-                      (auth.role ?? 'student').toUpperCase(),
+                            const Padding(
 
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w600,
+                              padding:
+                              EdgeInsets.only(left: 6),
+
+                              child: Icon(
+                                Icons.verified,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
 
-                    const SizedBox(height: 22),
+                      const SizedBox(height: 6),
 
-                    // Stats
-                    Row(
+                      // Role
 
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly,
+                      Container(
 
-                      children: [
-
-                        _StatItem(
-                          value:
-                          uploaded.length.toString(),
-                          label: 'Posts',
+                        padding:
+                        const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
                         ),
 
-                        _StatItem(
-                          value: totalLikes.toString(),
-                          label: 'Likes',
+                        decoration: BoxDecoration(
+
+                          color:
+                          primary.withValues(alpha: 0.12),
+
+                          borderRadius:
+                          BorderRadius.circular(20),
                         ),
 
-                        _StatItem(
-                          value: saved.length.toString(),
-                          label: 'Saved',
+                        child: Text(
+
+                          role.toUpperCase(),
+
+                          style: TextStyle(
+                            color: primary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Stats
+
+                      Row(
+
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceEvenly,
+
+                        children: [
+
+                          _StatItem(
+                            value:
+                            uploaded.length.toString(),
+                            label: 'Posts',
+                          ),
+
+                          _StatItem(
+                            value:
+                            totalLikes.toString(),
+                            label: 'Likes',
+                          ),
+
+                          _StatItem(
+                            value:
+                            saved.length.toString(),
+                            label: 'Saved',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
-          // Upload section
+          // ───────────────── UPLOAD HEADER ─────────────────
+
           SliverToBoxAdapter(
 
             child: Padding(
-              padding: const EdgeInsets.all(16),
+
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                18,
+                16,
+                12,
+              ),
 
               child: Row(
 
@@ -182,6 +233,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
 
                   const Text(
+
                     'Your Uploads',
 
                     style: TextStyle(
@@ -198,77 +250,169 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Grid
-          SliverPadding(
+          // ───────────────── EMPTY STATE ─────────────────
 
-            padding:
-            const EdgeInsets.symmetric(horizontal: 12),
+          if (uploaded.isEmpty)
 
-            sliver: SliverGrid(
+            const SliverToBoxAdapter(
 
-              delegate:
-              SliverChildBuilderDelegate(
+              child: Padding(
 
-                    (context, index) {
+                padding: EdgeInsets.all(40),
 
-                  final note = uploaded[index];
+                child: Center(
 
-                  return Container(
+                  child: Text(
+                    'No uploads yet',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            )
 
-                    margin: const EdgeInsets.all(6),
+          // ───────────────── GRID ─────────────────
 
-                    decoration: BoxDecoration(
+          else
 
-                      borderRadius:
-                      BorderRadius.circular(16),
+            SliverPadding(
 
-                      image: note.isImage
-                          ? DecorationImage(
-                        image:
-                        NetworkImage(note.fileUrl),
-                        fit: BoxFit.cover,
-                      )
-                          : null,
-
-                      color: Colors.grey.shade200,
-                    ),
-
-                    child: note.isImage
-
-                        ? null
-
-                        : Center(
-
-                      child: Icon(
-
-                        note.isPdf
-                            ? Icons.picture_as_pdf
-                            : note.isVideo
-                            ? Icons.play_circle
-                            : Icons.description,
-
-                        size: 42,
-                      ),
-                    ),
-                  );
-                },
-
-                childCount: uploaded.length,
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 10,
               ),
 
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              sliver: SliverGrid(
 
-                crossAxisCount: 3,
+                delegate:
+                SliverChildBuilderDelegate(
 
-                crossAxisSpacing: 8,
+                      (context, index) {
 
-                mainAxisSpacing: 8,
+                    final note = uploaded[index];
+
+                    return Container(
+
+                      margin: const EdgeInsets.all(4),
+
+                      decoration: BoxDecoration(
+
+                        borderRadius:
+                        BorderRadius.circular(14),
+
+                        color: Colors.grey.shade200,
+                      ),
+
+                      clipBehavior: Clip.antiAlias,
+
+                      child: Stack(
+
+                        fit: StackFit.expand,
+
+                        children: [
+
+                          // Image preview
+
+                          if (note.isImage)
+
+                            Image.network(
+
+                              note.fileUrl,
+
+                              fit: BoxFit.cover,
+
+                              errorBuilder:
+                                  (_, __, ___) {
+
+                                return const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 40,
+                                  ),
+                                );
+                              },
+                            )
+
+                          // Other file types
+
+                          else
+
+                            Center(
+
+                              child: Icon(
+
+                                note.isPdf
+                                    ? Icons.picture_as_pdf
+                                    : note.isVideo
+                                    ? Icons.play_circle_fill
+                                    : note.isDoc
+                                    ? Icons.description
+                                    : Icons.insert_drive_file,
+
+                                size: 42,
+
+                                color: primary,
+                              ),
+                            ),
+
+                          // Bottom overlay
+
+                          Positioned(
+
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+
+                            child: Container(
+
+                              padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+
+                              color:
+                              Colors.black54,
+
+                              child: Text(
+
+                                note.title,
+
+                                maxLines: 1,
+
+                                overflow:
+                                TextOverflow.ellipsis,
+
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight:
+                                  FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+
+                  childCount: uploaded.length,
+                ),
+
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+
+                  crossAxisCount: 3,
+
+                  crossAxisSpacing: 6,
+
+                  mainAxisSpacing: 6,
+                ),
               ),
             ),
-          ),
 
-          // Logout
+          // ───────────────── LOGOUT ─────────────────
+
           SliverToBoxAdapter(
 
             child: Padding(
@@ -285,6 +429,11 @@ class ProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.logout),
 
                 label: const Text('Logout'),
+
+                style: ElevatedButton.styleFrom(
+                  minimumSize:
+                  const Size(double.infinity, 50),
+                ),
               ),
             ),
           ),
@@ -316,10 +465,11 @@ class _StatItem extends StatelessWidget {
       children: [
 
         Text(
+
           value,
 
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),

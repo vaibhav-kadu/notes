@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
-import '../../../core/services/notification_service.dart';
 
 class NotesProvider with ChangeNotifier {
   final NotesService _service = NotesService();
