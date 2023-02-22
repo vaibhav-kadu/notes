@@ -13,8 +13,8 @@ class AuthProvider with ChangeNotifier {
   String? role;
   bool isVerified = false;
 
-  bool get canUploadNotes => role == "admin" || role == "teacher";
-  bool get canManageNotes => role == "admin" || role == "teacher";
+  bool get canUploadNotes => role == "admin" || (role == "teacher" && isVerified);
+  bool get canManageNotes => role == "admin" || (role == "teacher" && isVerified);
 
   String _roleKey(String userId) => 'user_role_$userId';
   String _verifiedKey(String userId) => 'user_verified_$userId';
@@ -174,7 +174,7 @@ class AuthProvider with ChangeNotifier {
 
     final metadata = currentUser.userMetadata ?? {};
     final metadataRole = metadata['role']?.toString();
-    final metadataVerified = metadata['is_verified'] != false;
+    final metadataVerified = metadata['is_verified'] == true;
     final loadedFromCache = await _loadCachedAccountState(currentUser.id);
 
     if (metadataRole != null) {
@@ -191,7 +191,7 @@ class AuthProvider with ChangeNotifier {
 
       if (res != null) {
         role = res['role']?.toString() ?? metadataRole ?? role;
-        isVerified = res['is_verified'] == true || metadataVerified;
+        isVerified = res['is_verified'] == true;
       } else {
         role = metadataRole ?? 'student';
         isVerified = metadataVerified;

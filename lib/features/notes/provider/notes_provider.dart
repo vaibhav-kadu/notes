@@ -87,11 +87,11 @@ class NotesProvider with ChangeNotifier {
 
     final data = await supabase
         .from('users')
-        .select('is_teacher_approved')
+        .select('is_verified')
         .eq('id', user.id)
         .maybeSingle();
 
-    return data?['is_teacher_approved'] == true;
+    return data?['is_verified'] == true;
   }
 
   bool _matchesActivity(Set<String> activityKeys, NoteModel note) {

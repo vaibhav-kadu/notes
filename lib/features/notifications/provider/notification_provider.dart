@@ -56,7 +56,7 @@ class NotificationProvider with ChangeNotifier {
     await supabase
         .from('users')
         .update({
-      'is_teacher_approved': true,
+      'is_verified': true,
     })
         .eq('id', notification.referenceId!);
 
