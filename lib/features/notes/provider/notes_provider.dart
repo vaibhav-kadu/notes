@@ -328,33 +328,47 @@ class NotesProvider with ChangeNotifier {
   }
 
   Future<void> uploadNoteSecure(
-      String title, String subject, String type, File file) async {
+      String title,
+      String subject,
+      String type,
+      File file,
+      ) async {
 
     final user = supabase.auth.currentUser;
+
     if (user == null) {
-      throw Exception("Please log in to upload notes");
+      throw Exception("Please login first");
     }
 
-    final role = await _resolveCurrentRole();
+    // Use cached auth state instead of DB query
+    final userData = await supabase
+        .from('users')
+        .select('role, is_verified')
+        .eq('id', user.id)
+        .single();
 
-    bool canUpload = false;
+    final role =
+    userData['role'];
 
-    if (role == 'admin') {
-      canUpload = true;
-    }
+    final verified =
+        userData['is_verified'] == true;
 
-    if (role == 'teacher') {
-
-      final approved = await isTeacherApproved();
-
-      canUpload = approved;
-    }
+    final canUpload =
+        role == 'admin' ||
+            (role == 'teacher' && verified);
 
     if (!canUpload) {
-      throw Exception("Only admins and teachers can upload");
+      throw Exception(
+        "Teacher account not verified yet",
+      );
     }
 
-    await uploadNote(title, subject, type, file);
+    await uploadNote(
+      title,
+      subject,
+      type,
+      file,
+    );
   }
 
   Future<void> uploadNote(

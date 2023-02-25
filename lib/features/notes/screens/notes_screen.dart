@@ -83,8 +83,27 @@ class _NotesScreenState extends State<NotesScreen> {
         _showSnack(context, 'Uploaded successfully! ✅');
       }
     } catch (e) {
+
       if (context.mounted) {
-        _showSnack(context, e.toString().replaceFirst('Exception: ', ''), isError: true);
+
+        final msg = e.toString();
+
+        if (msg.contains('ClientConnection')) {
+
+          _showSnack(
+            context,
+            'Network issue. Please try again.',
+            isError: true,
+          );
+
+        } else {
+
+          _showSnack(
+            context,
+            msg.replaceFirst('Exception: ', ''),
+            isError: true,
+          );
+        }
       }
     }
   }

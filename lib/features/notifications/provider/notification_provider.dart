@@ -70,9 +70,12 @@ class NotificationProvider with ChangeNotifier {
     });
 
     // Mark notification read
-    await markAsRead(notification.id);
 
-    await loadNotifications();
+    await supabase.from('notifications').delete().eq('id', notification.id);
+
+    notifications.removeWhere((n) => n.id == notification.id,);
+
+    notifyListeners();
   }
 
   Future<void> rejectTeacher(
@@ -91,8 +94,10 @@ class NotificationProvider with ChangeNotifier {
     });
 
     // Mark read
-    await markAsRead(notification.id);
+    await supabase.from('notifications').delete().eq('id', notification.id);
 
-    await loadNotifications();
+    notifications.removeWhere((n) => n.id == notification.id,);
+
+    notifyListeners();
   }
 }
