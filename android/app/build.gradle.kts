@@ -20,9 +20,9 @@ plugins {
 
 android {
     namespace = "com.amrutamtechnology.notes"
-    compileSdk = 36   // or 35/36 (your system supports 36)
+    compileSdk = flutter.compileSdkVersion
 
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -37,10 +37,10 @@ android {
     defaultConfig {
         applicationId = "com.amrutamtechnology.notes"
         minSdk = flutter.minSdkVersion
-        targetSdk = 36   // Play Store requirement (34+)
+        targetSdk = 35   // Play Store requirement (34+)
 
-        versionCode = 3
-        versionName = "1.0.3"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
